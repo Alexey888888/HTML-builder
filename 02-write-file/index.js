@@ -7,14 +7,18 @@ const path = require('path');
 const readline = require('readline');
 
 const rl = readline.createInterface(stdin, stdout);
-const writableStream = fs.createWriteStream(path.join(__dirname, 'text.txt'), {
-  flags: 'a',
-});
+const writableStream = fs.createWriteStream(
+  path.join(__dirname, 'text.txt'),
+  {
+    flags: 'a',
+  },
+  'utf8',
+);
 
 stdout.write('Hi! Input your text:\n');
 
 rl.on('line', (data) => {
-  if (data === 'exit') exit();
+  if (data.trim() === 'exit') exit();
   writableStream.write(`${data}\n`);
 });
 
