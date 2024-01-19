@@ -12,10 +12,14 @@ async function displayFilesInfo() {
         stat(path.join(__dirname, 'secret-folder', file.name)).then(
           (fileStat) => {
             console.log(
-              `${file.name.split('.')[0]} - ${file.name.split('.')[1]} - ${
-                fileStat.size
-              }b`,
+              `${path.basename(
+                path.join(__dirname, 'secret-folder', file.name),
+                path.extname(file.name),
+              )} - ${path.extname(file.name).slice(1)} - ${fileStat.size}b`,
             );
+          },
+          (err) => {
+            console.error(err);
           },
         );
       }
