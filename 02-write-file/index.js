@@ -18,10 +18,14 @@ const writableStream = fs.createWriteStream(
 stdout.write('Hi! Input your text:\n');
 
 rl.on('line', (data) => {
-  if (data.trim() === 'exit') exit();
+  if (data.trim() === 'exit') {
+    stdout.write('Bye! Have a nice day!');
+    exit();
+  }
   writableStream.write(`${data}\n`);
 });
 
-process.on('exit', () => {
+rl.on('SIGINT', () => {
   stdout.write('Bye! Have a nice day!');
+  exit();
 });
