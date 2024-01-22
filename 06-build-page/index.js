@@ -6,6 +6,10 @@ const mkdir = fs.mkdir;
 const readdir = require('fs/promises').readdir;
 const readfile = require('fs/promises').readFile;
 
+const mkDir = require('fs/promises').mkdir;
+const copyFile = require('fs/promises').copyFile;
+const stat = require('fs/promises').stat;
+
 function createProjectDistFolder() {
   try {
     mkdir(path.join(__dirname, 'project-dist'), { recursive: true }, (err) => {
@@ -77,6 +81,61 @@ async function createIndexHtml() {
       console.error(err);
     },
   );
+  //-------------
+  copy();
+  buildBundle();
+  //-------------
 }
 
 createIndexHtml();
+
+async function copy(source, destination) {
+  try {
+    const sourceFolder = source || path.join(__dirname, 'assets');
+    const destinationFolder =
+      destination || path.join(__dirname, 'project-dist', 'assets');
+
+    await mkDir(destinationFolder, { recursive: true });
+
+    const filesFolder = await readdir(sourceFolder);
+
+    for (const file of filesFolder) {
+      const sourceFile = path.join(sourceFolder, file);
+      const destinationFile = path.join(destinationFolder, file);
+
+      const fileStat = await stat(sourceFile);
+
+      if (fileStat.isDirectory()) {
+        await copy(sourceFile, destinationFile);
+      } else {
+        await copyFile(sourceFile, destinationFile);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function buildBundle() {
+  const writeStream = fs.createWriteStream(
+    path.join(__dirname, 'project-dist', 'style.css'),
+    'utf8',
+  );
+  const files = await readdir(path.join(__dirname, 'styles'), {
+    withFileTypes: true,
+  });
+  files.forEach((file) => {
+    if (
+      !file.isDirectory() &&
+      path.extname(path.join(__dirname, 'styles', file.name)) === '.css'
+    ) {
+      const readStream = fs.createReadStream(
+        path.join(__dirname, 'styles', file.name),
+        'utf-8',
+      );
+      readStream.on('data', (data) => {
+        writeStream.write(data);
+      });
+    }
+  });
+}
